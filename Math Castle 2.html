@@ -1,0 +1,478 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Math Siege 🧠🏹🏰</title>
+  <style>
+    :root { font-family: system-ui, Arial, sans-serif; }
+    body { margin:0; background:#f0f2f5; color:#111; }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 18px; }
+    .card{
+      background:#fff; border-radius:24px; padding:20px;
+      box-shadow:0 10px 30px rgba(0,0,0,.1);
+      position:relative; overflow:hidden;
+    }
+    h1{ margin:0 0 6px; font-size:32px; color: #2d3436; }
+    .sub{ margin:0 0 12px; opacity:.75; }
+
+
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+    .pill{
+      background:#f1f5f9; border-radius:12px; padding:8px 12px;
+      display:inline-flex; gap:8px; align-items:center; border: 1px solid #e2e8f0;
+    }
+    input[type="text"]{
+      border:1px solid #cbd5e1; border-radius:10px; padding:8px 12px;
+      font-size:16px; width:120px;
+    }
+    select, button{
+      border:0; border-radius:12px; padding:10px 16px; font-size:16px; font-weight: 600;
+    }
+    select{ background:#f1f5f9; cursor: pointer; }
+    button{ background:#111; color:#fff; cursor:pointer; transition: transform 0.1s; }
+    button:active { transform: scale(0.95); }
+    button:disabled{ opacity:.45; cursor:not-allowed; }
+
+
+    /* Battlefield - Character Art Style */
+    .battlefield{
+      position:relative;
+      height: 320px;
+      border-radius:20px;
+      border:4px solid #334155;
+      background: 
+        radial-gradient(circle at 15% 20%, #ffdfba 0%, transparent 15%),
+        linear-gradient(180deg, #ff9f43 0%, #ff6b6b 40%, #54a0ff 100%);
+      overflow:hidden;
+      margin-bottom: 14px;
+    }
+    .mountains {
+      position: absolute; bottom: 70px; width: 100%; height: 60px;
+      background: #2f3542; clip-path: polygon(0% 100%, 15% 30%, 30% 70%, 50% 10%, 70% 60%, 85% 20%, 100% 100%);
+      opacity: 0.4;
+    }
+    .ground{
+      position:absolute; left:0; right:0; bottom:0;
+      height: 80px;
+      background: linear-gradient(180deg, #2ecc71, #27ae60);
+      border-top: 4px solid #1e8449;
+    }
+
+
+    .siegeHUD{
+      position:absolute; top:15px; left:15px; right:15px;
+      display:flex; justify-content:space-between; gap:10px; z-index: 10;
+    }
+    .hudBadge{
+      background: rgba(255,255,255,0.9); border:2px solid #334155;
+      border-radius: 12px; padding: 6px 12px; font-weight: bold;
+    }
+
+
+    /* Trebuchet Redesign */
+    .trebuchetArea{
+      position:absolute; left: 20px; bottom: 45px; width: 260px; height: 210px;
+      display:flex; align-items:flex-end; justify-content:center;
+    }
+    .treb{ position:relative; width: 220px; height: 180px; }
+    .trebBase{
+      position:absolute; left: 20px; right: 20px; bottom: 0;
+      height: 20px; border-radius: 8px; background: #5d4037; border-bottom: 5px solid #3e2723;
+    }
+    .trebFrame{
+      position:absolute; bottom: 15px; left: 70px;
+      width: 80px; height: 100px;
+      border-left: 12px solid #5d4037; border-right: 12px solid #5d4037;
+    }
+    .trebPivot{
+      position:absolute; left: 104px; bottom: 105px;
+      width: 14px; height: 14px; border-radius: 50%; background: #2d3436; z-index: 4;
+    }
+    .trebArm{
+      position:absolute; left: 110px; bottom: 110px;
+      width: 150px; height: 14px;
+      background: #3e2723; border-radius: 10px;
+      transform-origin: 8px 7px; transform: rotate(-28deg); z-index: 3;
+    }
+    .trebArm::after{
+      content:""; position:absolute; left:-25px; top:-15px;
+      width: 30px; height: 40px; border-radius: 6px;
+      background: #2d3436; border: 2px solid #636e72;
+    }
+    .trebSling{
+      position:absolute; right: -5px; top: -2px;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: #0b1320; border: 2px solid rgba(255,255,255,0.2);
+    }
+    .trebArm.fire{ animation: armFire 450ms cubic-bezier(.2,.9,.2,1.2) both; }
+    @keyframes armFire{
+      0%{ transform: rotate(-28deg); }
+      60%{ transform: rotate(25deg); }
+      100%{ transform: rotate(15deg); }
+    }
+
+
+    /* Castle & Knight */
+    .castleArea{
+      position:absolute; right: 20px; bottom: 45px; width: 360px; height: 230px;
+      display:flex; align-items:flex-end; justify-content:center;
+    }
+    .knight {
+      position: absolute; top: -45px; left: 45%; font-size: 38px;
+      transition: transform 0.2s, filter 0.2s; z-index: 10;
+    }
+    .knight.scared { transform: translateY(-25px) scale(1.3); filter: sepia(1) saturate(10) hue-rotate(-50deg); }
+
+
+    .castle{ position:relative; width: 320px; height: 210px; transform-origin: center bottom; }
+    .castle.shake{ animation: castleShake 300ms ease-out; }
+    @keyframes castleShake{
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px) rotate(-1deg); }
+      40% { transform: translateX(8px) rotate(1deg); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(5px); }
+    }
+
+
+    /* Pieces */
+    .piece{
+      position:absolute; border: 3px solid #7f8c8d;
+      background: #95a5a6; border-radius: 8px;
+      box-shadow: inset -4px -4px 0 rgba(0,0,0,0.15);
+      overflow:hidden; transform-origin: center center;
+    }
+    .crenel{
+      position:absolute; left:0; right:0; top:0; height:15px;
+      background: repeating-linear-gradient(90deg, transparent 0 15px, #7f8c8d 15px 20px);
+    }
+    .window{
+      position:absolute; width: 14px; height: 22px;
+      background: #2d3436; border-radius: 7px 7px 3px 3px;
+    }
+    .gate{
+      position:absolute; width: 60px; height: 80px;
+      background: #3e2723; border-radius: 30px 30px 5px 5px;
+      left: 130px; bottom: 0; border: 3px solid #2d3436;
+    }
+
+
+    /* Piece Placements */
+    #p1{ left: 20px; bottom: 10px; width: 80px; height: 160px; }
+    #p2{ right: 20px; bottom: 10px; width: 80px; height: 160px; }
+    #p3{ left: 100px; bottom: 5px; width: 120px; height: 140px; z-index: 2; }
+    #p4{ left: 100px; bottom: 145px; width: 120px; height: 45px; }
+    #p5{ left: 60px; bottom: 10px; width: 50px; height: 90px; }
+    #p6{ right: 60px; bottom: 10px; width: 50px; height: 90px; }
+    #p7{ left: 20px; bottom: 170px; width: 80px; height: 20px; }
+    #p8{ right: 20px; bottom: 170px; width: 80px; height: 20px; }
+    #p9{ left: 100px; bottom: 190px; width: 120px; height: 20px; }
+    #p10{ left: 70px; bottom: 95px; width: 180px; height: 35px; z-index: 3; }
+
+
+    .piece.fall{ animation: pieceFall 700ms cubic-bezier(.2,.8,.2,1) both; }
+    @keyframes pieceFall{
+      0%{ transform: translate(0,0) rotate(0deg); opacity:1; }
+      100%{ transform: translate(var(--dx, 0px), 250px) rotate(var(--dr, 20deg)); opacity:0; }
+    }
+
+
+    .stone{
+      position:absolute; width: 22px; height: 22px;
+      border-radius: 50%; background: #636e72;
+      border: 3px solid #2d3436; z-index: 100; pointer-events:none;
+    }
+
+
+    /* Game UI */
+    .progress{ height:12px; background:#e2e8f0; border-radius:999px; overflow:hidden; margin: 10px 0; border: 1px solid #cbd5e1; }
+    .bar{ height:100%; width:0%; background:#2ecc71; transition: width 0.3s; }
+    .big{ font-size:52px; font-weight:900; text-align: center; color: #111; margin: 15px 0; text-shadow: 2px 2px #fff; }
+    .choices{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    .choice{
+      background:#fff; color:#111; border:3px solid #e2e8f0; padding: 20px; font-size: 24px;
+      box-shadow: 0 4px 0 #e2e8f0;
+    }
+    .choice:hover{ background: #f8fafc; border-color: #94a3b8; }
+    .choice:active{ transform: translateY(4px); box-shadow: none; }
+    
+    .msg{ margin-top:12px; padding:15px; border-radius:12px; font-weight: bold; text-align: center; display:none; }
+    .ok{ background:#d1fae5; color:#065f46; border:2px solid #34d399; }
+    .no{ background:#fee2e2; color:#991b1b; border:2px solid #f87171; }
+    
+    .celebrate{
+      position:absolute; inset:0; display:grid; place-items:center;
+      pointer-events:none; opacity:0; z-index: 200; transition: 0.2s;
+    }
+    .celebrate.show{ opacity:1; }
+    .banner{
+      background:white; border:4px solid #334155; border-radius:24px;
+      padding:25px; text-align:center; box-shadow:0 15px 40px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Math Siege 🧠🏹🏰</h1>
+      <p class="sub">Defend the kingdom! 10 hits destroys the enemy fortress.</p>
+
+
+      <div class="row">
+        <span class="pill">Score: <b id="score">0</b></span>
+        <span class="pill">Streak: <b id="streak">0</b></span>
+        <span class="pill">Name: <input id="kidName" type="text" value="Ben" maxlength="18" /></span>
+        
+        <span class="pill">Mode: 
+          <select id="mode">
+            <option value="mix" selected>Mixed</option>
+            <option value="mult">Multiply (×)</option>
+            <option value="div">Divide (÷)</option>
+          </select>
+        </span>
+
+
+        <span class="pill">Level: 
+          <select id="level">
+            <option value="easy">Easy</option>
+            <option value="med" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </span>
+        <button id="newBtn">Start Battle</button>
+      </div>
+
+
+      <div class="battlefield" id="battlefield">
+        <div class="mountains"></div>
+        <div class="siegeHUD">
+          <div class="hudBadge">Hits: <b id="hits">0</b>/10</div>
+          <div class="hudBadge" id="castleStatus">Castle: Standing</div>
+        </div>
+
+
+        <div class="trebuchetArea">
+          <div class="treb">
+            <div class="trebBase"></div>
+            <div class="trebFrame"></div>
+            <div class="trebPivot"></div>
+            <div class="trebArm" id="trebArm"><div class="trebSling" id="sling"></div></div>
+          </div>
+        </div>
+
+
+        <div class="castleArea">
+          <div class="knight" id="knight">😰</div>
+          <div class="castle" id="castle">
+            <div class="piece" id="p1"><div class="crenel"></div><div class="window" style="left:30px; top:50px"></div></div>
+            <div class="piece" id="p2"><div class="crenel"></div><div class="window" style="left:30px; top:50px"></div></div>
+            <div class="piece" id="p3"><div class="gate"></div></div>
+            <div class="piece" id="p4"><div class="crenel"></div></div>
+            <div class="piece" id="p5"></div>
+            <div class="piece" id="p6"></div>
+            <div class="piece" id="p7"></div>
+            <div class="piece" id="p8"></div>
+            <div class="piece" id="p9"></div>
+            <div class="piece" id="p10"></div>
+          </div>
+        </div>
+
+
+        <div class="ground"></div>
+      </div>
+
+
+      <div class="progress"><div class="bar" id="bar"></div></div>
+
+
+      <div class="big" id="q">Ready?</div>
+      <div class="choices" id="choices"></div>
+
+
+      <div class="msg ok" id="okMsg"></div>
+      <div class="msg no" id="noMsg"></div>
+      <div class="hint" id="hint"></div>
+
+
+      <div class="footer">
+        <button id="skipBtn" style="background:#475569;">Skip Question</button>
+        <button id="resetBtn" style="background:#e11d48;">Rebuild Castle</button>
+        <select id="sound" style="margin-left: 10px;"><option value="on">Sound: On</option><option value="off">Sound: Off</option></select>
+        <select id="help" style="margin-left: 10px;"><option value="off">Help: Off</option><option value="multHint">Hints: On</option></select>
+      </div>
+
+
+      <div class="celebrate" id="celebrate">
+        <div class="banner">
+          <div class="name" id="cheerText" style="font-size: 32px; font-weight: 900;">Great Job!</div>
+          <div class="subline" id="cheerSub">Direct hit! 🪨</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+<script>
+  // Your original logic preserved 100%
+  const scoreEl = document.getElementById("score");
+  const streakEl = document.getElementById("streak");
+  const qEl = document.getElementById("q");
+  const choicesEl = document.getElementById("choices");
+  const okMsg = document.getElementById("okMsg");
+  const noMsg = document.getElementById("noMsg");
+  const barEl = document.getElementById("bar");
+  const battlefieldEl = document.getElementById("battlefield");
+  const castleEl = document.getElementById("castle");
+  const knightEl = document.getElementById("knight");
+  const trebArmEl = document.getElementById("trebArm");
+  const slingEl = document.getElementById("sling");
+  const hitsEl = document.getElementById("hits");
+  
+  let score = 0, streak = 0, hits = 0, lock = false, current = null;
+  const HITS_TO_WIN = 10;
+  const pieceOrder = ["p7","p8","p9","p10","p5","p6","p4","p1","p2","p3"];
+  let destroyed = new Set();
+
+
+  function randInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+
+  function makeQuestion(){
+    okMsg.style.display="none"; noMsg.style.display="none"; lock = false;
+    const mode = document.getElementById("mode").value;
+    const level = document.getElementById("level").value;
+    let min=2, max=5, ansMax=10;
+    if(level==="med"){ max=10; ansMax=12; } else if(level==="hard"){ max=12; ansMax=15; }
+
+
+    const type = (mode==="mix") ? (Math.random()>0.5?"mult":"div") : mode;
+    if(type==="mult"){
+      const a=randInt(min,max), b=randInt(min,max);
+      current = { a, b, answer: a*b, type };
+      qEl.textContent = `${a} × ${b} = ?`;
+    } else {
+      const divisor=randInt(min,max), answer=randInt(1,ansMax);
+      current = { dividend: divisor*answer, divisor, answer, type };
+      qEl.textContent = `${current.dividend} ÷ ${current.divisor} = ?`;
+    }
+    renderChoices();
+  }
+
+
+  function renderChoices(){
+    choicesEl.innerHTML = "";
+    const options = new Set([current.answer]);
+    while(options.size<4){
+      let fake = current.answer + randInt(-5, 5);
+      if(fake>0 && fake!==current.answer) options.add(fake);
+    }
+    [...options].sort(()=>Math.random()-0.5).forEach(val => {
+      const b = document.createElement("button");
+      b.className = "choice"; b.textContent = val;
+      b.onclick = () => submit(val);
+      choicesEl.appendChild(b);
+    });
+  }
+
+
+  // Audio Context (WebAudio)
+  let audioCtx = null;
+  function playSound(type){
+    if(document.getElementById("sound").value === "off") return;
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const t = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    if(type==='hit'){
+      osc.type='square'; osc.frequency.setValueAtTime(150, t);
+      osc.frequency.exponentialRampToValueAtTime(40, t+0.1);
+      g.gain.setValueAtTime(0.3, t); g.gain.linearRampToValueAtTime(0, t+0.2);
+    } else {
+      osc.frequency.setValueAtTime(440, t); g.gain.setValueAtTime(0.1, t);
+      g.gain.linearRampToValueAtTime(0, t+0.1);
+    }
+    osc.connect(g); g.connect(audioCtx.destination);
+    osc.start(); osc.stop(t+0.2);
+  }
+
+
+  async function submit(val){
+    if(lock) return; lock = true;
+    if(val === current.answer){
+      score+=10; streak++; hits++;
+      scoreEl.textContent = score; streakEl.textContent = streak; hitsEl.textContent = hits;
+      barEl.style.width = Math.min(100, (streak/10)*100) + "%";
+      okMsg.textContent = "Correct! Launching Stone..."; okMsg.style.display="block";
+      playSound('ding');
+      await fireStone();
+      if(hits >= HITS_TO_WIN) collapseCastle();
+      setTimeout(makeQuestion, 600);
+    } else {
+      streak = 0; barEl.style.width = "0%";
+      noMsg.textContent = `Oops! The answer was ${current.answer}`; noMsg.style.display="block";
+      lock = false;
+    }
+  }
+
+
+  function fireStone(){
+    return new Promise(res => {
+      trebArmEl.classList.remove("fire"); void trebArmEl.offsetWidth;
+      trebArmEl.classList.add("fire");
+      
+      const stone = document.createElement("div");
+      stone.className = "stone";
+      stone.style.left = "130px"; stone.style.bottom = "150px";
+      battlefieldEl.appendChild(stone);
+
+
+      stone.animate([
+        { left: '130px', bottom: '150px' },
+        { left: '450px', bottom: '300px' },
+        { left: '780px', bottom: '140px' }
+      ], { duration: 600, easing: 'ease-out' }).onfinish = () => {
+        stone.remove();
+        knightEl.classList.add("scared");
+        setTimeout(()=>knightEl.classList.remove("scared"), 400);
+        knockPiece();
+        res();
+      };
+    });
+  }
+
+
+  function knockPiece(){
+    const id = pieceOrder.find(p => !destroyed.has(p));
+    if(id){
+      destroyed.add(id);
+      const el = document.getElementById(id);
+      el.style.setProperty("--dx", randInt(-40, 40)+"px");
+      el.style.setProperty("--dr", randInt(-30, 30)+"deg");
+      el.classList.add("fall");
+      battlefieldEl.classList.add("shake");
+      playSound('hit');
+      setTimeout(()=>battlefieldEl.classList.remove("shake"), 300);
+    }
+  }
+
+
+  function collapseCastle(){
+    document.getElementById("celebrate").classList.add("show");
+    setTimeout(()=>document.getElementById("celebrate").classList.remove("show"), 2000);
+    pieceOrder.forEach((id, i) => {
+      if(!destroyed.has(id)) setTimeout(()=>knockPiece(), i*100);
+    });
+  }
+
+
+  document.getElementById("newBtn").onclick = makeQuestion;
+  document.getElementById("skipBtn").onclick = makeQuestion;
+  document.getElementById("resetBtn").onclick = () => {
+    destroyed.clear(); hits = 0; hitsEl.textContent = 0;
+    document.querySelectorAll(".piece").forEach(p => p.classList.remove("fall"));
+    makeQuestion();
+  };
+</script>
+</body>
+</html>
